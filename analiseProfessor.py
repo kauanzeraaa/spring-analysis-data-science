@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 
 # Entrada de dados
-arquivo = "experimentoProfessor.xlsx"    # nome do arquivo do Excel
+arquivo = "experimento.xlsx"    # nome do arquivo do Excel
 tabela1_original = pd.read_excel(arquivo, sheet_name="tabela1", header=1, usecols="B:I")     # Lê como um dataframe
 tabela1_dict = tabela1_original.to_dict('list')     # Converte para um dataframe
 
