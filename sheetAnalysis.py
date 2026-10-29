@@ -14,6 +14,19 @@ data_dict = data_df.to_dict('list') # transform xlsx data into dictonary
 # print(data_dict) - show dict format
 
 # Processing data
-
+# Calculate boxplot variables
 
 # Show results
+# Draw result graphs
+
+# plt.scatter(data_dict['C'], data_dict['dutilidade']) # spring length X dutilidade
+# plt.title("Spring length X dutilidade")
+# plt.xlabel("Spring Lengh (C)")
+# plt.ylabel("Dutilidade")
+# plt.show()
+
+plt.scatter(data_dict['t'], data_dict['dutilidade']) # spring heigh X dutilidade
+plt.title("Spring heigh X dutilidade")
+plt.xlabel("Spring Lengh (T)")
+plt.ylabel("Dutilidade")
+plt.show()
