@@ -83,3 +83,46 @@ if printTendency:
     print("=" * 70)
     print(cleaned_df.drop(columns=['Id'], errors='ignore').describe())
 
+# -------------------------------------------------------------------------------------------------
+# Graph visualization
+# -------------------------------------------------------------------------------------------------
+# Configure a default visual style for the graphs
+sb.set_theme(style="whitegrid")
+
+# Define numeric columns excluding 'Id'
+cols_graficos = cleaned_df.drop(columns=['Id'], errors='ignore').columns
+
+# Compare variation and distribution of all variables in the same figure
+plt.figure(figsize=(12, 6))
+sb.boxplot(data=cleaned_df[cols_graficos], palette="Set2")
+plt.title("Boxplot das Variáveis Analisadas Sem Outliers")
+plt.ylabel("Valores")
+plt.xticks(rotation=45) # Rotate x-axis labels for better readability
+plt.tight_layout()
+plt.show()
+
+# Histogram of 'dutilidade' to visualize its distribution
+if 'dutilidade' in cleaned_df.columns:
+    plt.figure(figsize=(8, 5))
+    sb.histplot(cleaned_df['dutilidade'], kde=True, bins=10, color='teal')
+    plt.title("Distribuição da Dutilidade")
+    plt.xlabel("Dutilidade")
+    plt.ylabel("Frequência Absoluta")
+    plt.show()
+
+# Scatter plot - Altura (t) vs Dutilidade
+if 't' in cleaned_df.columns and 'dutilidade' in cleaned_df.columns:
+    plt.figure(figsize=(8, 5))
+    sb.scatterplot(data=cleaned_df, x='t', y='dutilidade', color='darkred', s=80, alpha=0.7)
+    plt.title("Relação: Altura (t) x Dutilidade")
+    plt.xlabel("Altura (t)")
+    plt.ylabel("Dutilidade")
+    plt.show()
+
+# Heatmap of Pearson correlation between variables
+plt.figure(figsize=(10, 8))
+matriz_correlacao = cleaned_df[cols_graficos].corr()
+sb.heatmap(matriz_correlacao, annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5, vmin=-1, vmax=1)
+plt.title("Mapa de Calor: Correlação de Pearson entre Variáveis")
+plt.tight_layout()
+plt.show()
