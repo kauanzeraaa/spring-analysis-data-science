@@ -58,7 +58,7 @@ cleaned_df = data_df[is_inlier]
 # Show Results
 # -------------------------------------------------------------------------------------------------
 
-printTendency = False  # Set to False to skip printing central tendency measures
+printTendency = True  # Set to False to skip printing central tendency measures
 
 if printTendency:
     # Summary table of central tendency
@@ -92,6 +92,24 @@ sb.set_theme(style="whitegrid")
 # Define numeric columns excluding 'Id'
 cols_graficos = cleaned_df.drop(columns=['Id'], errors='ignore').columns
 
+# Plot distribution of each numeric variable in separate figures
+for col in cols_graficos:
+    plt.figure(figsize=(8, 5))
+    sb.histplot(cleaned_df[col], kde=True, bins=10, color='skyblue')
+    plt.title(f"Distribuição da Variável: {col}")
+    plt.xlabel(col)
+    plt.ylabel("Frequência Absoluta")
+    plt.show()
+
+# Compare variation and distribution of all variables in the same figure - With Outliers
+plt.figure(figsize=(12, 6))
+sb.boxplot(data=numeric_df[cols_graficos], palette="Set2")
+plt.title("Boxplot das Variáveis Analisadas Com Outliers")
+plt.ylabel("Valores")
+plt.xticks(rotation=45) # Rotate x-axis labels for better readability
+plt.tight_layout()
+plt.show()
+
 # Compare variation and distribution of all variables in the same figure
 plt.figure(figsize=(12, 6))
 sb.boxplot(data=cleaned_df[cols_graficos], palette="Set2")
@@ -102,13 +120,13 @@ plt.tight_layout()
 plt.show()
 
 # Histogram of 'dutilidade' to visualize its distribution
-if 'dutilidade' in cleaned_df.columns:
-    plt.figure(figsize=(8, 5))
-    sb.histplot(cleaned_df['dutilidade'], kde=True, bins=10, color='teal')
-    plt.title("Distribuição da Dutilidade")
-    plt.xlabel("Dutilidade")
-    plt.ylabel("Frequência Absoluta")
-    plt.show()
+# if 'dutilidade' in cleaned_df.columns:
+#     plt.figure(figsize=(8, 5))
+#     sb.histplot(cleaned_df['dutilidade'], kde=True, bins=10, color='teal')
+#     plt.title("Distribuição da Dutilidade")
+#     plt.xlabel("Dutilidade")
+#     plt.ylabel("Frequência Absoluta")
+#     plt.show()
 
 # Scatter plot - Altura (t) vs Dutilidade
 if 't' in cleaned_df.columns and 'dutilidade' in cleaned_df.columns:
