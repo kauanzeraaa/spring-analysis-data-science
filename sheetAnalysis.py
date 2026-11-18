@@ -63,13 +63,20 @@ cleaned_df = data_df[is_inlier]
 dados_log = np.log(data_df)
 
 # Seleção das variáveis de trabalho
-X = dados_log[['L', 'n', 't']]
+X = dados_log[['L', 'h', 't']]
 Y = dados_log['rigidez']
 
 # Construção do modelo
 modelo = skmodel.LinearRegression() # Cria objeto do modelo
 modelo.fit(X, Y)                    # Usa a função de ajuste
 
+# Avaliando qualidade do modelo
+R2 = skmetrics.r2_score(Y, modelo.predict(X))
+
+# Comparação direta e id. de outliers
+data_df['previsao'] = 0.48 *  (data_df['t'] ** 1.01) * (data_df['L'] ** 1.84) / (data_df['h'] ** 2)
+
+data_df['residuo'] = data_df['rigidez'] - data_df['previsao']
 
 # -------------------------------------------------------------------------------------------------
 # Show Results
@@ -323,7 +330,13 @@ if printTendency:
     plt.show()
 
 # Regressão Linear Multivariável - variáveis escolhidas (L, n, t)
-print("Dados de entrada do modelo: ")
-print(X)
-print("Dados de saída do modelo: ")
-print(Y)
+print("Coeficientes do modelo: ")
+print(modelo.coef_)
+print("\nCoeficiente independente: ")
+print(modelo.intercept_)
+print("\nTermo Livre Inverso: ", np.exp(modelo.intercept_))
+
+# 
+print("\n", R2)
+
+print(data_df[['ridigez', 'previsao']])
