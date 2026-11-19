@@ -59,8 +59,8 @@ cleaned_df = data_df[is_inlier]
 # -------------------------------------------------------------------------------------------------
 # Regressão Linear Multivariável - variáveis escolhidas (L, n, t)
 # -------------------------------------------------------------------------------------------------
-# Linearizando os dados
-dados_log = np.log(data_df)
+# Linearizando os dados (excluindo a coluna 'Id' que não deve entrar no log)
+dados_log = np.log(numeric_df)
 
 # Seleção das variáveis de trabalho
 X = dados_log[['L', 'h', 't']]
@@ -70,12 +70,16 @@ Y = dados_log['rigidez']
 modelo = skmodel.LinearRegression() # Cria objeto do modelo
 modelo.fit(X, Y)                    # Usa a função de ajuste
 
-# Avaliando qualidade do modelo
+# Avaliando qualidade do modelo no espaço logarítmico
 R2 = skmetrics.r2_score(Y, modelo.predict(X))
 
-# Comparação direta e id. de outliers
-data_df['previsao'] = 0.48 *  (data_df['t'] ** 1.01) * (data_df['L'] ** 1.84) / (data_df['h'] ** 2)
+# Obtenção dos parâmetros ajustados: rigidez = C0 * (h^beta_h) * (t^beta_t) / (L^|beta_L|)
+c0 = np.exp(modelo.intercept_)
+beta_L, beta_h, beta_t = modelo.coef_
 
+# Comparação direta e id. de outliers
+# Fórmula empírica: 0.48 * (h ** 1.56) * (t ** 1.01) / (L ** 1.84)
+data_df['previsao'] = c0 * (data_df['h'] ** beta_h) * (data_df['t'] ** beta_t) * (data_df['L'] ** beta_L)
 data_df['residuo'] = data_df['rigidez'] - data_df['previsao']
 
 # -------------------------------------------------------------------------------------------------
@@ -329,14 +333,38 @@ if printTendency:
     plt.tight_layout()
     plt.show()
 
-# Regressão Linear Multivariável - variáveis escolhidas (L, n, t)
-print("Coeficientes do modelo: ")
-print(modelo.coef_)
-print("\nCoeficiente independente: ")
-print(modelo.intercept_)
-print("\nTermo Livre Inverso: ", np.exp(modelo.intercept_))
+# Regressão Linear Multivariável - variáveis escolhidas (L, h, t)
+print("=" * 70)
+print("        REGRESSÃO LINEAR MULTIVARIÁVEL (RIGIDEZ = f(L, h, t))")
+print("=" * 70)
+print("Coeficientes do modelo (beta_L, beta_h, beta_t):")
+print(f"  beta_L (L) : {beta_L:.4f}")
+print(f"  beta_h (h) : {beta_h:.4f}")
+print(f"  beta_t (t) : {beta_t:.4f}")
+print("\nCoeficiente linear (intercepto ln C0):", f"{modelo.intercept_:.4f}")
+print("Termo Livre Inverso (C0 = exp(intercepto)):", f"{c0:.4f}")
+print(f"\nEquação Empírica da Rigidez:")
+print(f"  rigidez = {c0:.4f} * (h ** {beta_h:.2f}) * (t ** {beta_t:.2f}) / (L ** {-beta_L:.2f})")
+print(f"\nCoeficiente de Determinação (R² log): {R2:.4f}")
 
-# 
-print("\n", R2)
+R2_original = skmetrics.r2_score(data_df['rigidez'], data_df['previsao'])
+print(f"Coeficiente de Determinação (R² original): {R2_original:.4f}")
 
-print(data_df[['ridigez', 'previsao']])
+print("\n" + "=" * 70)
+print("       COMPARAÇÃO DIRETA: REAL vs. PREVISTO E RESÍDUOS")
+print("=" * 70)
+print(data_df[['Id', 'h', 't', 'L', 'rigidez', 'previsao', 'residuo']].to_string(index=False))
+
+# Identificação de possíveis outliers pelo resíduo do modelo
+res_q1 = data_df['residuo'].quantile(0.25)
+res_q3 = data_df['residuo'].quantile(0.75)
+res_iqr = res_q3 - res_q1
+outliers_modelo = data_df[(data_df['residuo'] < res_q1 - 1.5 * res_iqr) | (data_df['residuo'] > res_q3 + 1.5 * res_iqr)]
+
+print("\n" + "=" * 70)
+print("       IDENTIFICAÇÃO DE OUTLIERS PELO RESÍDUO DO MODELO")
+print("=" * 70)
+if len(outliers_modelo) > 0:
+    print(outliers_modelo[['Id', 'rigidez', 'previsao', 'residuo']].to_string(index=False))
+else:
+    print("Nenhum outlier detectado nos resíduos do modelo pelo critério 1.5*IQR.")
